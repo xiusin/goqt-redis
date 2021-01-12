@@ -1,0 +1,24 @@
+QMenu {
+    /*font-family: "Microsoft YaHei", "微软雅黑", "Lato", Helvetica, Arial, sans-serif;*/
+    color: #2C3E50;
+    border: none;
+    background-color: #fff;
+    font-size: 12px;
+}
+
+QMenu::item {
+    background-color: transparent;
+    padding: 8px 20px;
+    border-bottom: 1px solid #EEE;
+    margin:0px 8px;
+}
+
+QMenu::item:last-child {
+    border-bottom: none
+}
+
+QMenu::item:selected, QMenu::item:hover {
+    background-color: #2C3E50;
+    color: #fff;
+    border-left: 2px solid #2baee9;
+}

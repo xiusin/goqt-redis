@@ -1,0 +1,8 @@
+vendor
+deploy
+darwin
+moc.*
+moc_*
+rcc.*
+rcc_cgo*
+msyh.ttc
