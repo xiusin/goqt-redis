@@ -1,35 +1,37 @@
 package components
 
 import (
-	"context"
 	"encoding/json"
-	"goqt-redis/libs/helper"
-	"goqt-redis/libs/rdm"
+	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
 	"runtime/debug"
-	"sync"
+
+	"goqt-redis/libs/helper"
+	"goqt-redis/libs/rdm"
 
 	"github.com/gorilla/websocket"
 	"github.com/rs/cors"
 	"github.com/xiusin/logger"
 )
 
-var once sync.Once
-
 var mux *http.ServeMux
+
+var serverPort int
 
 func init() {
 	f, err := os.OpenFile(helper.UserHomeDir("error.log"), os.O_RDWR|os.O_CREATE, os.ModePerm)
 	if err == nil {
 		logger.SetOutput(io.MultiWriter(os.Stdout, os.Stderr, f))
 	}
+	serverPort = rand.Intn(10000) + 6000
 }
 
 // InitRdm 初始化 Rdm的 web服务
-func InitRdm(ctx context.Context) {
+func InitRdm() {
 	defer func() {
 		if err := recover(); err != nil {
 			logger.Error("启动rdm服务失败", err, string(debug.Stack()))
@@ -51,6 +53,7 @@ func InitRdm(ctx context.Context) {
 		"/redis/connection/get-command": rdm.RedisManagerGetCommandList,
 	}
 	mux = http.NewServeMux()
+	mux.Handle("/", http.FileServer(http.Dir("dist")))
 	for route, handle := range routes {
 		mux.HandleFunc(route, func(handle rdm.HandleFunc) func(writer http.ResponseWriter, request *http.Request) {
 			return func(writer http.ResponseWriter, request *http.Request) {
@@ -63,7 +66,7 @@ func InitRdm(ctx context.Context) {
 				var params url.Values
 				data := make(map[string]interface{})
 				if request.Method == http.MethodPost {
-					request.ParseForm()
+					_ = request.ParseForm()
 					params = request.PostForm
 				} else {
 					params = request.URL.Query()
@@ -75,7 +78,7 @@ func InitRdm(ctx context.Context) {
 						data[param] = nil
 					}
 				}
-				writer.Write([]byte(handle(data)))
+				_, _ = writer.Write([]byte(handle(data)))
 			}
 		}(handle))
 	}
@@ -90,7 +93,7 @@ func InitRdm(ctx context.Context) {
 	mux.HandleFunc("/redis/connection/pubsub", func(writer http.ResponseWriter, request *http.Request) {
 		if request.Method == http.MethodPost {
 			data := make(map[string]interface{})
-			request.ParseForm()
+			_ = request.ParseForm()
 			params := request.PostForm
 			for param, values := range params {
 				if len(values) > 0 {
@@ -99,7 +102,7 @@ func InitRdm(ctx context.Context) {
 					data[param] = nil
 				}
 			}
-			writer.Write([]byte(rdm.RedisPubSub(data)))
+			_, _ = writer.Write([]byte(rdm.RedisPubSub(data)))
 			return
 		}
 
@@ -123,5 +126,8 @@ func InitRdm(ctx context.Context) {
 		}
 	})
 	handler := cors.Default().Handler(mux)
-	_ = http.ListenAndServe(":18998", handler)
+	err := http.ListenAndServe(fmt.Sprintf(":%d", serverPort), handler)
+	if err != nil {
+		panic(err)
+	}
 }

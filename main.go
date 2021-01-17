@@ -1,9 +1,9 @@
 package main
 
 import (
-	"context"
-	"goqt-redis/components"
 	"os"
+
+	"goqt-redis/components"
 
 	"github.com/therecipe/qt/core"
 	"github.com/therecipe/qt/gui"
@@ -31,7 +31,7 @@ func main() {
 		font.SetWeight(14)
 		widgets.QApplication_SetFont(font, "")
 	}
-	go components.InitRdm(context.TODO())
+	go components.InitRdm()
 	components.InitRdmUI()
 	widgets.QApplication_Exec()
 }

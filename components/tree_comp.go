@@ -2,12 +2,13 @@ package components
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+
 	"goqt-redis/libs/channel"
 	"goqt-redis/libs/helper"
 	"goqt-redis/libs/rdm"
 	"goqt-redis/qml"
-	"strconv"
-	"strings"
 
 	"github.com/therecipe/qt/core"
 	"github.com/therecipe/qt/gui"

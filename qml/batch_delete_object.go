@@ -1,9 +1,10 @@
 package qml
 
 import (
+	"strings"
+
 	"goqt-redis/libs/helper"
 	"goqt-redis/libs/rdm"
-	"strings"
 
 	"github.com/therecipe/qt/core"
 )

@@ -2,13 +2,14 @@ package components
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+	"sync"
+
 	"goqt-redis/libs/helper"
 	"goqt-redis/libs/rdm"
 	"goqt-redis/qml"
 	"goqt-redis/ui"
-	"strconv"
-	"strings"
-	"sync"
 
 	"github.com/therecipe/qt/core"
 	"github.com/therecipe/qt/gui"
@@ -68,7 +69,7 @@ func InitRdmUI() {
 		})
 		rdmUi.WebEngineView.Settings().SetAttribute(webengine.QWebEngineSettings__PluginsEnabled, true)
 		rdmUi.WebEngineView.Settings().SetAttribute(webengine.QWebEngineSettings__SpatialNavigationEnabled, true)
-		rdmUi.WebEngineView.SetUrl(core.NewQUrl3("http://localhost:8899/#/", 0))
+		rdmUi.WebEngineView.SetUrl(core.NewQUrl3(fmt.Sprintf("http://127.0.0.1:%d/#/", serverPort), 0))
 		rdmUi.VerticalLayout_2.SetSpacing(0)
 		rdmUi.HorizontalLayout.SetSpacing(0)
 		qss, err := helper.GetFileContent("qss/rdm.css")
@@ -150,8 +151,8 @@ func (ui *RdmUi) SetTreeData() {
 
 	ui.TreeWidget.SetFixedWidth(320)
 
-	conns := rdm.RedisManagerConnectionListForQt()
-	for k, conn := range conns {
+	cones := rdm.RedisManagerConnectionListForQt()
+	for k, conn := range cones {
 		item := widgets.NewQTreeWidgetItem(k)
 		item.SetData(0, GetRole(RoleData), core.NewQVariant1(fmt.Sprintf("%d", conn.ID)))
 		item.SetData(0, GetRole(RoleLevel), core.NewQVariant1("1"))
