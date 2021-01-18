@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 
 	"github.com/therecipe/qt/core"
 	"github.com/therecipe/qt/widgets"
@@ -45,4 +46,16 @@ func UserHomeDir(file ...string) string {
 		return homeDir + "/" + file[0]
 	}
 	return homeDir
+}
+
+//GetBaseDir 获取文件路径
+func GetBaseDir(name string) string {
+	var dir string
+	if runtime.GOOS == "darwin" {
+		dir, _ = os.Executable()
+	} else {
+		dir, _ = os.Getwd()
+	}
+	logger.Print(filepath.Join(dir, name))
+	return filepath.Join(dir, name)
 }

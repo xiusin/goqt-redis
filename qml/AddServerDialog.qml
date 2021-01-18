@@ -12,16 +12,17 @@ Window {
     visible: true
     flags: Qt.Dialog
     modality: Qt.WindowModal
-    width: 400
-    height: 250
     minimumHeight: 250
     minimumWidth: 400
+    maximumHeight: 250
+    maximumWidth: 400
     title: "添加新服务器"
 
     GridLayout {
         columns: 2
         anchors.fill: parent
         anchors.margins: 10
+        anchors.bottomMargin:20
         rowSpacing: 10
         columnSpacing: 10
 
@@ -66,6 +67,7 @@ Window {
         }
 
         Item {
+            anchors.margins: 10
             Layout.columnSpan: 2
             Layout.fillWidth: true
             implicitHeight: button.height

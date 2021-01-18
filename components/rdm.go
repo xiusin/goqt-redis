@@ -51,7 +51,7 @@ func InitRdm() {
 		"/redis/connection/get-command": rdm.RedisManagerGetCommandList,
 	}
 	mux = http.NewServeMux()
-	mux.Handle("/", http.FileServer(http.Dir("dist")))
+	mux.Handle("/", http.FileServer(http.Dir(helper.GetBaseDir("dist"))))
 	for route, handle := range routes {
 		mux.HandleFunc(route, func(handle rdm.HandleFunc) func(writer http.ResponseWriter, request *http.Request) {
 			return func(writer http.ResponseWriter, request *http.Request) {
@@ -89,5 +89,3 @@ func InitRdm() {
 	}
 
 }
-
-
