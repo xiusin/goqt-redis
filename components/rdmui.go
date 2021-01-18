@@ -25,6 +25,7 @@ type RdmUi struct {
 	*ui.RdmUi
 	ConnectionServerIsShow bool
 	isMousePressed         bool
+	connectedServer        map[string]bool
 	mousePoint             *core.QPoint
 	Js                     *Js
 	DbTitles               map[string]string
@@ -38,9 +39,10 @@ func InitRdmUI() {
 	rdmOnce.Do(func() {
 		network.QNetworkProxyFactory_SetUseSystemConfiguration(false) // 屏蔽自动寻找代理
 		rdmUi = &RdmUi{
-			RdmUi:    ui.NewRdmUi(nil),
-			Js:       &Js{},
-			DbTitles: map[string]string{},
+			RdmUi:           ui.NewRdmUi(nil),
+			Js:              &Js{},
+			DbTitles:        map[string]string{},
+			connectedServer: map[string]bool{},
 		}
 		rdmUi.SetWindowFlag(core.Qt__FramelessWindowHint, true) // 屏蔽webview动画闪烁窗体.
 		rdmUi.ConnectMousePressEvent(func(event *gui.QMouseEvent) {
@@ -125,6 +127,7 @@ const (
 	RoleLevel
 	RoleKey
 	RolePattern
+	RoleConnFlag
 )
 
 func GetRole(va int) int {
@@ -153,9 +156,11 @@ func (ui *RdmUi) SetTreeData() {
 
 	cones := rdm.RedisManagerConnectionListForQt()
 	for k, conn := range cones {
+		ui.connectedServer[conn.Flag] = false
 		item := widgets.NewQTreeWidgetItem(k)
 		item.SetData(0, GetRole(RoleData), core.NewQVariant1(fmt.Sprintf("%d", conn.ID)))
 		item.SetData(0, GetRole(RoleLevel), core.NewQVariant1("1"))
+		item.SetData(0, GetRole(RoleConnFlag), core.NewQVariant1(conn.Flag))
 		ui.AttachIcon(item, "redis")
 		item.SetText(0, conn.Title)
 		ui.TreeWidget.AddTopLevelItem(item)
@@ -168,16 +173,22 @@ func (ui *RdmUi) SetTreeData() {
 			if item.ChildCount() > 0 {
 				return
 			}
+			flag := item.Data(0, GetRole(RoleConnFlag)).ToString()
+			ui.connectedServer[flag] = true
 			serverIdx := item.Data(0, GetRole(RoleData)).ToString()
 			dbs := rdm.RedisManagerDbListForQt(serverIdx, true)
-			for k, db := range dbs {
-				newItem := widgets.NewQTreeWidgetItem(k)
-				newItem.SetData(0, GetRole(RoleData), core.NewQVariant1(fmt.Sprintf("%s-%d", serverIdx, k)))
-				newItem.SetData(0, GetRole(RoleLevel), core.NewQVariant1("2"))
-				newItem.SetData(0, GetRole(RolePattern), core.NewQVariant1("*")) // 默认正则规则为*
-				ui.AttachIcon(newItem, "db")
-				newItem.SetText(0, fmt.Sprintf("db%2d  (%d)", k, db))
-				item.AddChild(newItem)
+			if len(dbs) > 0 {
+				for k, db := range dbs {
+					newItem := widgets.NewQTreeWidgetItem(k)
+					newItem.SetData(0, GetRole(RoleData), core.NewQVariant1(fmt.Sprintf("%s-%d", serverIdx, k)))
+					newItem.SetData(0, GetRole(RoleLevel), core.NewQVariant1("2"))
+					newItem.SetData(0, GetRole(RolePattern), core.NewQVariant1("*")) // 默认正则规则为*
+					ui.AttachIcon(newItem, "db")
+					newItem.SetText(0, fmt.Sprintf("db%2d  (%d)", k, db))
+					item.AddChild(newItem)
+				}
+			} else {
+				ui.connectedServer[flag] = false
 			}
 		case 2:
 			if item.ChildCount() > 0 {

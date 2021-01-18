@@ -78,21 +78,24 @@ func RedisManagerRemoveConnectionForQt(data map[string]interface{}) bool {
 func RedisManagerConnectionListForQt() []struct {
 	ID    int64  `json:"id"`
 	Title string `json:"title"`
+	Flag  string `json:"flag"`
 } {
 	err := readConfigJSON()
 	if err != nil {
 		fmt.Println(err)
 		return nil
 	}
-	var conns = []struct {
+	var conns []struct {
 		ID    int64  `json:"id"`
 		Title string `json:"title"`
-	}{}
+		Flag  string `json:"flag"`
+	}
 	for _, conn := range connectionList {
 		conns = append(conns, struct {
 			ID    int64  `json:"id"`
 			Title string `json:"title"`
-		}{ID: conn.ID, Title: conn.Title})
+			Flag  string `json:"flag"`
+		}{ID: conn.ID, Title: conn.Title, Flag: fmt.Sprintf("%d:%s:%s", conn.ID, conn.Ip, conn.Port)})
 	}
 
 	return conns

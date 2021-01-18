@@ -61,14 +61,21 @@ func (receiver *TreeComp) slotContextMenu(point *core.QPoint) {
 	if currentItem == nil {
 		return
 	}
-
 	// 鼠标右键
 	level, _ := strconv.Atoi(currentItem.Data(0, GetRole(RoleLevel)).ToString())
 	receiver.QTreeWidget.ClearSelection()
 	menu := widgets.NewQMenu(receiver.QTreeWidget)
 	switch level {
 	case 1:
-		receiver.attachContextMenuToConn(menu, currentItem)
+		flag := currentItem.Data(0, GetRole(RoleConnFlag)).ToString()
+		var exists bool
+		var ok bool
+		if exists, ok = receiver.rdm.connectedServer[flag]; !ok {
+			receiver.rdm.connectedServer[flag] = ok
+		}
+		if exists {
+			receiver.attachContextMenuToConn(menu, currentItem)
+		}
 	case 2:
 		receiver.attachContextMenuToDb(menu, currentItem)
 	case 3:
@@ -158,7 +165,7 @@ func (receiver *TreeComp) attachContextMenuToDb(menu *widgets.QMenu, item *widge
 			widgets.QMessageBox__Yes|widgets.QMessageBox__No, widgets.QMessageBox__No) == widgets.QMessageBox__Yes {
 			receiver.RemoveAllSubItem(item)(checked)
 			receiver.rdm.Js.FlushDB(item)
-			item.DestroyQTreeWidgetItem()
+			//item.DestroyQTreeWidgetItem()
 		}
 	})
 
@@ -192,7 +199,11 @@ func (receiver *TreeComp) attachContextMenuToConn(menu *widgets.QMenu, item *wid
 	disConn := menu.AddAction("断开")
 	receiver.attachMenuIcon(disConn, "discon")
 	disConn.SetParent(receiver.QTreeWidget)
-	disConn.ConnectTriggered(receiver.RemoveAllSubItem(item))
+	disConn.ConnectTriggered(func(checked bool) {
+		receiver.RemoveAllSubItem(item)(checked)
+		flag := item.Data(0, GetRole(RoleConnFlag)).ToString()
+		delete(receiver.rdm.connectedServer, flag)
+	})
 	serveInfo := menu.AddAction("信息")
 	receiver.attachMenuIcon(serveInfo, "info")
 	serveInfo.SetParent(receiver.QTreeWidget)
@@ -207,6 +218,8 @@ func (receiver *TreeComp) attachContextMenuToConn(menu *widgets.QMenu, item *wid
 		ok := rdm.RedisManagerRemoveConnectionForQt(map[string]interface{}{
 			"id": item.Data(0, GetRole(RoleData)).ToString(),
 		})
+		flag := item.Data(0, GetRole(RoleConnFlag)).ToString()
+		delete(receiver.rdm.connectedServer, flag)
 		if ok {
 			item.DestroyQTreeWidgetItem()
 		}
