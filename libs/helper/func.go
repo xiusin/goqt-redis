@@ -16,6 +16,10 @@ var workingDir string
 
 func init() {
 	workingDir, _ = os.Getwd()
+	if runtime.GOOS == "darwin" {
+		workingDir, _ = os.Executable()
+		workingDir = filepath.Dir(workingDir)
+	}
 }
 
 // GetFileContent 获取文件内容
@@ -41,21 +45,14 @@ func ShowWarningMessage(title, content string) {
 func UserHomeDir(file ...string) string {
 	usr, _ := user.Current()
 	homeDir := usr.HomeDir + "/.goqt_rdm"
-	os.MkdirAll(homeDir, os.ModePerm)
+	_ = os.MkdirAll(homeDir, os.ModePerm)
 	if len(file) != 0 {
-		return homeDir + "/" + file[0]
+		return filepath.Join(homeDir, file[0])
 	}
 	return homeDir
 }
 
 //GetBaseDir 获取文件路径
 func GetBaseDir(name string) string {
-	var dir string
-	if runtime.GOOS == "darwin" {
-		dir, _ = os.Executable()
-	} else {
-		dir, _ = os.Getwd()
-	}
-	logger.Print(filepath.Join(dir, name))
-	return filepath.Join(dir, name)
+	return filepath.Join(workingDir, name)
 }

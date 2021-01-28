@@ -2,15 +2,13 @@ package components
 
 import (
 	"fmt"
+	"goqt-redis/libs/helper"
+	"goqt-redis/libs/rdm"
 	"io"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
-	"runtime/debug"
-
-	"goqt-redis/libs/helper"
-	"goqt-redis/libs/rdm"
 
 	"github.com/rs/cors"
 	"github.com/xiusin/logger"
@@ -21,7 +19,7 @@ var mux *http.ServeMux
 var serverPort int
 
 func init() {
-	f, err := os.OpenFile(helper.UserHomeDir("error.log"), os.O_RDWR|os.O_CREATE, os.ModePerm)
+	f, err := os.OpenFile(helper.UserHomeDir("error.log"), os.O_RDWR|os.O_APPEND|os.O_CREATE, os.ModePerm)
 	if err == nil {
 		logger.SetOutput(io.MultiWriter(os.Stdout, os.Stderr, f))
 	}
@@ -32,7 +30,7 @@ func init() {
 func InitRdm() {
 	defer func() {
 		if err := recover(); err != nil {
-			logger.Error("启动rdm服务失败", err, string(debug.Stack()))
+			logger.Error("启动rdm服务失败", err)
 		}
 	}()
 	var routes = map[string]rdm.HandleFunc{
@@ -57,8 +55,7 @@ func InitRdm() {
 			return func(writer http.ResponseWriter, request *http.Request) {
 				defer func() {
 					if err := recover(); err != nil {
-						s := debug.Stack()
-						logger.Errorf("Recovered Error: %s, ErrorStack: \n%s\n\n", err, string(s))
+						logger.Errorf("Recovered Error: %s", err)
 					}
 				}()
 				var params url.Values

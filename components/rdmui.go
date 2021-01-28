@@ -71,7 +71,8 @@ func InitRdmUI() {
 		})
 		rdmUi.WebEngineView.Settings().SetAttribute(webengine.QWebEngineSettings__PluginsEnabled, true)
 		rdmUi.WebEngineView.Settings().SetAttribute(webengine.QWebEngineSettings__SpatialNavigationEnabled, true)
-		rdmUi.WebEngineView.SetUrl(core.NewQUrl3(fmt.Sprintf("http://127.0.0.1:%d/#/", serverPort), 0))
+		url := fmt.Sprintf("http://127.0.0.1:%d", serverPort)
+		rdmUi.WebEngineView.SetUrl(core.NewQUrl3(url+"/#/?qt_web_port="+strconv.Itoa(serverPort), 0))
 		rdmUi.VerticalLayout_2.SetSpacing(0)
 		rdmUi.HorizontalLayout.SetSpacing(0)
 		qss, err := helper.GetFileContent("qss/rdm.css")
@@ -87,9 +88,6 @@ func InitRdmUI() {
 				view := qml2.NewQQmlApplicationEngine(nil)
 				ctxObject := qml.NewCtxConnectionObject(nil)
 				ctxObject.ExitCh = make(chan struct{})
-				ctxObject.ConnectDestroyQObject(func() {
-					fmt.Println("关闭了")
-				})
 				ctxObject.TreeWidget = rdmUi.TreeWidget
 				ctxObject.SaveConn = rdm.RedisManagerConfigSaveForQt
 				ctxObject.TestConn = rdm.RedisManagerConnectionTestForQt
